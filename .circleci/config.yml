@@ -13,7 +13,7 @@ jobs:
     steps:
         - checkout
         - run: |
-            ln -sv /root/project/lib $QPATH/scientist
+            ln -sv /root/project/lib $QPATH/crispy-winner
             mkdir -pv circle-ci/testresults
             /q/l32/q /qlibs/lib/qspec/app/spec.q lib/tests --junit > circle-ci/testresults/result.xml
             cat circle-ci/testresults/result.xml
