@@ -28,7 +28,7 @@ calculateSamplePoints:{[t1;t2;num]
    :([]time:samples);
    }
 
-getStockSamples:{[sym;st;et;num]
+getStockSamples:{[s;st;et;num]
    samplePoints:calculateSamplePoints[st;et;num];
-   :samplePoints;
+   :`sym xcols update sym:s from samplePoints;
    }

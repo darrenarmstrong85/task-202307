@@ -30,4 +30,10 @@
       getStockSamples[`testSym;now;now;100];
       testArgs mustmatch (now;now;100);
       };
+
+   should["include sym in results returned"] {
+      `now mock .z.p;
+      res:getStockSamples[`testSym;now;now;100];
+      res[`sym] musteq `testSym;
+      };
    };
