@@ -23,12 +23,17 @@
 \
 
 calculateSamplePoints:{[t1;t2;num]
-   samples:(t1+til[num-1]*(t2-t1) div num-1),t2;
+   size:(t2-t1) div num-1;
+   samples:(t1+til[num-1]*size),t2;
 
-   :([]time:samples);
+   :`sampleSize`samples!(size;([]time:samples));
    }
 
 getStockSamples:{[s;st;et;num]
-   samplePoints:calculateSamplePoints[st;et;num];
-   :`sym xcols update sym:s from samplePoints;
+   points:calculateSamplePoints[st;et;num];
+
+   lookupMap:`trade`trade1min`trade5min!0D 0D00:01 0D00:05;
+   tab:lookupMap bin points`sampleSize;
+
+   :`sym xcols update sym:s from points`samples;
    }
