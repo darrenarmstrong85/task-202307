@@ -1,5 +1,9 @@
 .utl.require "crispy-winner"
 
+`trade5min set update `g#sym from ([] sym:`testSym; time:2023.07.01D+til[`long$(2023.07.08D-2023.07.01D) div 0D00:05]*00:05; price:100f+sums ((`long$(2023.07.08D-2023.07.01D)div 0D00:05)?1.0)-0.5);
+`trade1min set update `g#sym from ([] sym:`testSym; time:2023.07.01D+til[`long$(2023.07.08D-2023.07.01D) div 0D00:05]*00:05; price:100f+sums ((`long$(2023.07.08D-2023.07.01D)div 0D00:05)?1.0)-0.5);
+`trade     set update `g#sym from ([] sym:`testSym; time:2023.07.01D+til[`long$(2023.07.08D-2023.07.01D) div 0D00:05]*00:05; price:100f+sums ((`long$(2023.07.08D-2023.07.01D)div 0D00:05)?1.0)-0.5);
+
 .tst.desc["sampling generation function calculateSamplePoints"] {
    should["generate the correct sampling points between t1 and t2"] {
       t1:2023.07.07D;
@@ -20,7 +24,7 @@
 
 .tst.desc["sampling function getStockSamples"] {
    should["generate an output table of correct schema with same number of outputs as samples requested"] {
-      res:getStockSamples[`testoSym;2023.07.01D; 2023.07.08D; 100];
+      res:getStockSamples[`testSym;2023.07.01D; 2023.07.08D; 100];
       count[res] musteq 100;
       };
 
@@ -35,7 +39,24 @@
 
    should["include sym in results returned"] {
       `now mock .z.p;
-      res:getStockSamples[`testSym;now;now;100];
+      res:getStockSamples[`testSym;now-1D;now;100];
       res[`sym] musteq `testSym;
       };
+
+   should["call snap function with the correct granularity"] {
+      `now mock .z.p;
+      `snap mock {[tab;joincols;rack;opts] `snapArgs set (tab;joincols); update price:1f from rack};
+
+      `snapArgs mock ();
+      getStockSamples[`testSym;now-1D;now;100];
+      snapArgs mustmatch (`trade5min;`sym`time);
+
+      `snapArgs mock ();
+      getStockSamples[`testSym;now-1D;now;1000];
+      snapArgs mustmatch (`trade1min;`sym`time);
+
+      `snapArgs mock ();
+      getStockSamples[`testSym;now-1D;now;10000];
+      snapArgs mustmatch (`trade;`sym`time);
+      }
    };

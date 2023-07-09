@@ -29,11 +29,22 @@ calculateSamplePoints:{[t1;t2;num]
    :`sampleSize`samples!(size;([]time:samples));
    }
 
+/
+ in reality this would be a much more complex API, this is abstracted
+ away for simplicity
+\
+snap:{[tab;joincols;rack;opts]
+   aj[joincols;rack;select from tab]
+   }
+
 getStockSamples:{[s;st;et;num]
    points:calculateSamplePoints[st;et;num];
 
    lookupMap:`trade`trade1min`trade5min!0D 0D00:01 0D00:05;
    tab:lookupMap bin points`sampleSize;
 
-   :`sym xcols update sym:s from points`samples;
+   rack:`sym xcols update sym:s from points`samples;
+
+   snap[tab;`sym`time;rack;1#.q]
    }
+
