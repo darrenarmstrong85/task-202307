@@ -1,8 +1,8 @@
 .utl.require "crispy-winner"
 
-`trade5min set update `g#sym from ([] sym:`testSym; time:2023.07.01D+til[`long$(2023.07.08D-2023.07.01D) div 0D00:05]*00:05; price:100f+sums ((`long$(2023.07.08D-2023.07.01D)div 0D00:05)?1.0)-0.5);
-`trade1min set update `g#sym from ([] sym:`testSym; time:2023.07.01D+til[`long$(2023.07.08D-2023.07.01D) div 0D00:05]*00:05; price:100f+sums ((`long$(2023.07.08D-2023.07.01D)div 0D00:05)?1.0)-0.5);
-`trade     set update `g#sym from ([] sym:`testSym; time:2023.07.01D+til[`long$(2023.07.08D-2023.07.01D) div 0D00:05]*00:05; price:100f+sums ((`long$(2023.07.08D-2023.07.01D)div 0D00:05)?1.0)-0.5);
+`trade1sec  set update date:`date$time, sym:`g#sym from ([] sym:`testSym; time:2023.07.01D+til[`long$(2023.07.08D-2023.07.01D) div 0D00:05]*00:05; price:100f+sums ((`long$(2023.07.08D-2023.07.01D)div 0D00:05)?1.0)-0.5);
+`trade1min  set update date:`date$time, sym:`g#sym from ([] sym:`testSym; time:2023.07.01D+til[`long$(2023.07.08D-2023.07.01D) div 0D00:05]*00:05; price:100f+sums ((`long$(2023.07.08D-2023.07.01D)div 0D00:05)?1.0)-0.5);
+`tradeDaily set update time:`timestamp$date from select from trade1min where i=(rand;i) fby date;
 
 .tst.desc["sampling generation function calculateSamplePoints"] {
    should["generate the correct sampling points between t1 and t2"] {
@@ -48,8 +48,8 @@
       `snap mock {[tab;joincols;rack;opts] `snapArgs set (tab;joincols); update price:1f from rack};
 
       `snapArgs mock ();
-      getStockSamples[`testSym;now-1D;now;100];
-      snapArgs mustmatch (`trade5min;`sym`time);
+      getStockSamples[`testSym;now-100D;now;10];
+      snapArgs mustmatch (`tradeDaily;`sym`time);
 
       `snapArgs mock ();
       getStockSamples[`testSym;now-1D;now;1000];
@@ -57,6 +57,6 @@
 
       `snapArgs mock ();
       getStockSamples[`testSym;now-1D;now;10000];
-      snapArgs mustmatch (`trade;`sym`time);
+      snapArgs mustmatch (`trade1sec;`sym`time);
       }
    };
