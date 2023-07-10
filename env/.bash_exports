@@ -1,0 +1,6 @@
+export ALTERNATE_EDITOR=emacs
+export EDITOR="emacsclient -t"
+export VISUAL="emacsclient -t"
+export QPATH="$HOME/qlibs"
+export PATH="$HOME/bin:$PATH"
+export QINIT="$HOME/q/common/q.q"
