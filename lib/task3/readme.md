@@ -60,7 +60,7 @@ use a utility function `calculateSamplePoints` to divide the range
 into evenly-spaced samples, and provide both this sample size and the
 underlying points as a return value.
 
-### Optimization and storage considerations
+### Initial Optimization
 
 Although aj is a fast way to join data, it can be made faster by
 looking at the problem we are trying to solve.  We do not need to look
@@ -76,6 +76,8 @@ binned data would use log2(60 x 24) ~= 10 searches for each point.
 This compares with log2(1,000,000) ~= 20 searches for each sample, so
 we would expect 1-minute and 5-minute binned data to be at least 2x
 quicker.
+
+### Storage Cost
 
 The reality may be even more favourable for binned data due to
 filesystem caching.  Each day will contain approximately the amounts
@@ -95,7 +97,7 @@ q)raw:([]ttype:`$("raw data";"1-second bin";"1-minute bin";"5-minute bin";"1-hou
 q)tcols xcol 0!(toSI'')2!{update sizepdc:sizepd%5, size3yc:size3y%5 from x}update sizepd:ppdsym*5000*20, size30:ppdsym*5000*30*20, size3y:ppdsym*5000*3*365*20, sizeflat:ppdsym*5000*3*365*24 from raw
 ```
 
-| table type    | points per day per sym  | size per day per sym | size per day | size 30 days | size 3 years | size flat file | size per day compressed  | size 3 years compressed
+|    table type | points per day per sym  | size per day per sym | size per day | size 30 days | size 3 years | size flat file | size per day compressed  | size 3 years compressed
 | ------------- | ----------------------: | -------------------: | -----------: | -----------: | -----------: | -------------: | -----------------------: | -----------------------:
 |     raw data  |                 1000000 |             19.07 MB |     93.13 GB |      2.73 TB |     99.59 TB |      119.51 TB |                18.63 GB  |                19.92 TB
 | 1-second bin  |                   86400 |              1.65 MB |      8.05 GB |    241.40 GB |      8.60 TB |       10.33 TB |                 1.61 GB  |                 1.72 TB
@@ -107,6 +109,8 @@ q)tcols xcol 0!(toSI'')2!{update sizepdc:sizepd%5, size3yc:size3y%5 from x}updat
 ( * As I later recommend this data is stored in a flat-file format,
 note that this data will be uncompressed on load and require the full
 uncompressed size.  This is not a concern as we shall see. )
+
+### Fileystem caching
 
 User queries tend to be quite strongly correlated by sym and time, so
 we should aim for a solution with reasonable cache hit ratios.  A
@@ -126,6 +130,8 @@ orders of magnitude due to filesystem caching, and by a further order
 of magnitude given 10-20 mirrors.  So binned data may be 100-1,000x
 faster than sampling raw tick data for the volumes we expect.
 
+### Storage Approaches Rejected
+
 I did consider whether monthly-partitioned data would be useful, as
 for 5-minute data the overhead of filesystem operations may be
 dominant, and reduce the benefit of having fewer points to sample.
@@ -138,33 +144,6 @@ operational complexity, especially given the ability to keep the
 entire dataset in memory, where in-memory VFS operations in RAM will
 be at least an order of magnitude faster than even the fastest
 NVMe-based retrieval.
-
-We may still want to use different summary representations for
-different granularities, as this will ensure we obtain the best
-performance over a range of user queries, and provides appropriate
-precision where needed.  Inside the call to `getStockSamples`, once we
-have a sample increment and table of sample points, we use a binary
-search to find the table of interest.
-
-There is an approx 10:1 reduction in storage cost if 1-second bins are
-appropriate.  Given the description of expected use, it seems that raw
-tick data would almost never be needed for the granularity required.
-
-Finally, given how small the data storage requirements are for daily
-samples ( <100MB **total** ), I think it would be worth storing daily
-data as a flat file within the database, with the `g# attribute set
-either on-disk or upon loading.
-
-So for the purpose of this exercise, I have decided to use the
-sampling increment as follows:
-
-- If the sample increments are smaller than 1 minute, use 1-second
-  binned data.
-
-- If the sample increment is above 1 minute, we use the trade1min
-  table.
-
-- If the sample increment is greater than 1 day, use daily stats
 
 It is not obvious that hourly binned data is worth the cost and
 complexity versus 1-minute data.  Storing the data as a flat file
@@ -208,10 +187,40 @@ the correct partition and re-sort as needed in the case of a rolling
 the performance required cannot be obtained using 1-minute binned
 data.
 
-Given the increased cost to store 1-second binned data, it may be
-decided that there is no need for this.  To store all data for three
-years across all granularities would use <10TB of data, which by
-modern standards is a very small dataset.
+### Variable Sampling Resolution
+
+We may still want to use different summary representations for
+different granularities, as this will ensure we obtain the best
+performance over a range of user queries, and provides appropriate
+precision where needed.  Inside the call to `getStockSamples`, once we
+have a sample increment and table of sample points, we use a binary
+search to find the table of interest.
+
+There is an approx 10:1 reduction in storage cost if 1-second bins are
+appropriate.  Given the description of expected use, it seems that raw
+tick data would almost never be needed for the granularity required.
+
+Finally, given how small the data storage requirements are for daily
+samples ( <100MB **total** ), I think it would be worth storing daily
+data as a flat file within the database, with the `g# attribute set
+either on-disk or upon loading.
+
+So for the purpose of this exercise, I have decided to use the
+sampling increment as follows:
+
+- If the sample increments are smaller than 1 minute, use 1-second
+  binned data.
+
+- If the sample increment is above 1 minute, we use the trade1min
+  table.
+
+- If the sample increment is greater than 1 day, use daily stats
+
+Given the increased cost to store 1-second binned data, it could
+conceivably be decided that there is no need for this.  To store all
+data for three years across all granularities would use < 10 TB of
+data, which by modern standards is a very small dataset.  If we choose
+to use compression as I suggest later, this is reduced to < 2 TB.
 
 Note that within the `snap` function we check to see if we are joining
 daily data, and if so we perform the whole join in a single aj
@@ -275,18 +284,17 @@ As mentioned above, as we expect the trade1min data to be mainly used
 from cache, and as the dataset is not large enough to warrant it, I
 would not use compression here.
 
-Counter to this, I would consider compression on trade1sec.  The
-dataset is potentially large enough uncompressed that we would not be
-able to store a significant fraction of it, in which case we would
-spend a lot of time re-loading this from disk.  If we store the data
-compressed, it may mean that our warm-query performance suffers.
-However, we do not expect from the description that this data will be
-heavily used (we expect far greater use of the trade1min and
-tradeDaily datasets), and so in the case where data is not often found
-in cache and we can use compression to load less data from disk in
-preference to CPU, compression offers a net benefit to cold query
-performance and a storage cost benefit in using 1/5th the storage on
-disk.
+I would however consider compression on trade1sec.  The dataset is
+potentially large enough uncompressed that we would not be able to
+store a significant fraction of it, in which case we would spend a lot
+of time re-loading this from disk.  If we store the data compressed,
+it may mean that our warm-query performance suffers.  However, we do
+not expect from the description that this data will be heavily used
+(we expect far greater use of the trade1min and tradeDaily datasets),
+and so in the case where data is not often found in cache and we can
+use compression to load less data from disk in preference to CPU,
+compression offers a net benefit to cold query performance and a
+storage cost benefit in using 1/5th the storage on disk.
 
 Thereefore, outside of relatively fixed cost of sym and init.q
 storage, this is expected to use approximately (1.72 TB + 176.22 GB +
