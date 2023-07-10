@@ -1,4 +1,4 @@
-.utl.require "crispy-winner"
+.utl.require "task-202307"
 
 `trade1sec  set update date:`date$time, sym:`g#sym from ([] sym:`testSym; time:2023.07.01D+til[`long$(2023.07.08D-2023.07.01D) div 0D00:05]*00:05; price:100f+sums ((`long$(2023.07.08D-2023.07.01D)div 0D00:05)?1.0)-0.5);
 `trade1min  set update date:`date$time, sym:`g#sym from ([] sym:`testSym; time:2023.07.01D+til[`long$(2023.07.08D-2023.07.01D) div 0D00:05]*00:05; price:100f+sums ((`long$(2023.07.08D-2023.07.01D)div 0D00:05)?1.0)-0.5);
