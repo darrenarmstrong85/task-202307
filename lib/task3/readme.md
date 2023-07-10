@@ -148,7 +148,7 @@ NVMe-based retrieval.
 It is not obvious that hourly binned data is worth the cost and
 complexity versus 1-minute data.  Storing the data as a flat file
 would mean searching the entire space for a given sym on every call,
-which is likely to be hit diminishing returns, and cannot be done in
+which is likely to hit diminishing returns, and cannot be done in
 parallel outside of kdb's internal multi-threading.  It is likely to
 be faster to either use 1-minute binned data (which has fewer points
 per sample to explore) at smaller sample intervals, or to use daily
@@ -205,8 +205,8 @@ samples ( <100MB **total** ), I think it would be worth storing daily
 data as a flat file within the database, with the `g# attribute set
 either on-disk or upon loading.
 
-So for the purpose of this exercise, I have decided to use the
-sampling increment as follows:
+So for the purpose of this exercise, I have decided to use a sampling
+strategy as follows:
 
 - If the sample increments are smaller than 1 minute, use 1-second
   binned data.
