@@ -327,9 +327,24 @@ processes running to service this load.
 As this will be mainly performing asof-joins in-memory using
 trade1min, I would expect to limit the number of processes by how many
 CPUs are available on the server.  In the above example, 10 secondary
-threads are used, so if we have 100 CPUs available.  Some amount of
-tuning would be needed to find the optimimum combination of secondary
-threads and processes.
+threads are used, so if we have 100 CPUs available we would set up 10
+HDB mirrors.  Some amount of tuning would be needed to find the
+optimimum combination of secondary threads and processes, but given
+the maximum number of points required is expected to be 1,000, this
+would give a reasonable balance between parallelism (and therefore
+performance) for individual queries, and responsiveness when under
+heavy simultaneous load.
+
+This balance is also likely to lead to very predictable performance
+even when under load, which may subjectively improve the user
+experience more than having more variable performance under load, and
+so prevent spurious retries by the user.
+
+If we were to choose a processor for this design, I would prioritize
+core count over clock speed and other metrics.  At the time of
+writing, the latest AMD Epyc processors can service up to 256 threads
+per socket.  A 2-socket server would allow us to service 512 threads,
+or around 50 users concurrently.
 
 ### Design strengths and weaknesses
 
