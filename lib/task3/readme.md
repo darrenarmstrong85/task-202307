@@ -95,14 +95,14 @@ q)raw:([]ttype:`$("raw data";"1-second bin";"1-minute bin";"5-minute bin";"1-hou
 q)tcols xcol 0!(toSI'')2!{update sizepdc:sizepd%5, size3yc:size3y%5 from x}update sizepd:ppdsym*5000*20, size30:ppdsym*5000*30*20, size3y:ppdsym*5000*3*365*20, sizeflat:ppdsym*5000*3*365*24 from raw
 ```
 
-| table type    | points per day per sym  | size per day per sym | size per day | size 30 days | size 3 years | size flat file | size per day compressed | size 3 years compressed
-| ------------- | ----------------------: | -------------------: | -----------: | -----------: | -----------: | -------------: | ----------------------: | ----------------------:
-|     raw data  |                 1000000 |             19.07 MB |     93.13 GB |      2.73 TB |     99.59 TB |      119.51 TB |                18.63 GB |                19.92 TB
-| 1-second bin  |                   86400 |              1.65 MB |      8.05 GB |    241.40 GB |      8.60 TB |       10.33 TB |                 1.61 GB |                 1.72 TB
-| 1-minute bin  |                    1440 |             28.13 kB |    137.33 MB |      4.02 GB |    146.85 GB |      176.22 GB |                27.47 MB |                29.37 GB
-| 5-minute bin  |                     288 |              5.63 kB |     27.47 MB |    823.97 MB |     29.37 GB |       35.24 GB |                 5.49 MB |                 5.87 GB
-| 1-hourly bin  |                      24 |            480.00  B |      2.29 MB |     68.66 MB |      2.45 GB |        2.94 GB |               468.75 kB |               501.25 MB
-|   daily data  |                       1 |             20.00  B |     97.66 kB |      2.86 MB |    104.43 MB |      125.31 MB |                19.53 kB |                20.89 MB
+| table type    | points per day per sym  | size per day per sym | size per day | size 30 days | size 3 years | size flat file | size per day compressed  | size 3 years compressed
+| ------------- | ----------------------: | -------------------: | -----------: | -----------: | -----------: | -------------: | -----------------------: | -----------------------:
+|     raw data  |                 1000000 |             19.07 MB |     93.13 GB |      2.73 TB |     99.59 TB |      119.51 TB |                18.63 GB  |                19.92 TB
+| 1-second bin  |                   86400 |              1.65 MB |      8.05 GB |    241.40 GB |      8.60 TB |       10.33 TB |                 1.61 GB  |                 1.72 TB
+| 1-minute bin  |                    1440 |             28.13 kB |    137.33 MB |      4.02 GB |    146.85 GB |      176.22 GB |                27.47 MB  |                29.37 GB
+| 5-minute bin  |                     288 |              5.63 kB |     27.47 MB |    823.97 MB |     29.37 GB |       35.24 GB |                 5.49 MB  |                 5.87 GB
+| 1-hourly bin  |                      24 |            480.00  B |      2.29 MB |     68.66 MB |      2.45 GB |        2.94 GB |               468.75 kB  |               501.25 MB
+|   daily data  |                       1 |             20.00  B |     97.66 kB |      2.86 MB |    104.43 MB |      125.31 MB |                19.53 kB* |                20.89 MB*
 
 ( * As I later recommend this data is stored in a flat-file format,
 note that this data will be uncompressed on load and require the full
