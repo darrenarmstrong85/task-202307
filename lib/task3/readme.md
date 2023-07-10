@@ -110,7 +110,7 @@ q)tcols xcol 0!(toSI'')2!{update sizepdc:sizepd%5, size3yc:size3y%5 from x}updat
 note that this data will be uncompressed on load and require the full
 uncompressed size.  This is not a concern as we shall see. )
 
-### Fileystem caching
+### Filesystem caching
 
 User queries tend to be quite strongly correlated by sym and time, so
 we should aim for a solution with reasonable cache hit ratios.  A
