@@ -80,20 +80,29 @@ quicker.
 The reality may be even more favourable for binned data due to
 filesystem caching.  Each day will contain approximately the amounts
 of data shown below.  Note that we assume an average size per row of
-timestamp(8) + sym(8) + price (4) = 20 bytes/row.  Compression assumes
-5:1 ratio is achievable (untested but a reasonable assumption for our
-purposes).  I have assumed 1 million rows per symbol per day for raw
-data.  Finally, I assume data is arriving at an even rate across the
-day, including at weekends.
+timestamp(8) + sym(8) + price (4) = 20 bytes/row for partitioned data,
+and 24 bytes (date column included) for flat files (date column is not
+strictly necessary but is a useful convenience for small files).
+Compression assumes 5:1 ratio is achievable (untested but a reasonable
+assumption for our purposes).  I have assumed 1 million rows per
+symbol per day for raw data.  Finally, I assume data is arriving at an
+even rate across the day, including at weekends.
 
-|   table type | size per sym per day  | size per day | size 30 days | size 3 years | size per day compressed  | size 3 years compressed |
-| ------------ | --------------------- | ------------ | ------------ | ------------ | ------------------------ | ----------------------- |
-|     raw data |              19.07 MB |     93.13 GB |      2.73 TB |     99.59 TB |               18.63 GB   |               19.92 TB  |
-| 1-second bin |               1.65 MB |      8.05 GB |    241.40 GB |      8.60 TB |                1.61 GB   |                1.72 TB  |
-| 1-minute bin |              22.50 KB |    109.86 MB |      3.22 GB |    117.48 GB |               21.97 MB   |               23.50 GB  |
-| 5-minute bin |               4.50 KB |     21.97 MB |    659.18 MB |     23.50 GB |                4.39 MB   |                4.70 GB  |
-| 1-hourly bin |             480.00  B |      2.29 MB |     68.66 MB |      2.45 GB |              468.75 KB   |              501.25 MB  |
-|   daily data |              20.00  B |     78.13 KB |      2.29 MB |     83.54 MB |               15.63 KB*  |               16.71 MB* |
+```
+q)toSI:{.Q.fmt[6;2;last s],(" ",/:" kMGTP",\:"B")@-1+count s:(1023<){x%1024.}\x}
+q)tcols:(`$("table type";"points per day per sym"; "size per day per sym"; "size per day";"size 30 days";"size 3 years";"size flat file";"size per day compressed";"size 3 years compressed"))
+q)raw:([]ttype:`$("raw data";"1-second bin";"1-minute bin";"5-minute bin";"1-hourly bin";"daily data"); ppdsym:(1000000;86400;60*24;12*24;24;1))
+q)tcols xcol 0!(toSI'')2!{update sizepdc:sizepd%5, size3yc:size3y%5 from x}update sizepd:ppdsym*5000*20, size30:ppdsym*5000*30*20, size3y:ppdsym*5000*3*365*20, sizeflat:ppdsym*5000*3*365*24 from raw
+```
+
+| table type    | points per day per sym  | size per day per sym | size per day | size 30 days | size 3 years | size flat file | size per day compressed | size 3 years compressed
+| ------------- | ----------------------- | -------------------- | ------------ | ------------ | ------------ | -------------- | ----------------------- | -----------------------
+|     raw data  |                 1000000 |             19.07 MB |     93.13 GB |      2.73 TB |     99.59 TB |      119.51 TB |                18.63 GB |                19.92 TB
+| 1-second bin  |                   86400 |              1.65 MB |      8.05 GB |    241.40 GB |      8.60 TB |       10.33 TB |                 1.61 GB |                 1.72 TB
+| 1-minute bin  |                    1440 |             28.13 kB |    137.33 MB |      4.02 GB |    146.85 GB |      176.22 GB |                27.47 MB |                29.37 GB
+| 5-minute bin  |                     288 |              5.63 kB |     27.47 MB |    823.97 MB |     29.37 GB |       35.24 GB |                 5.49 MB |                 5.87 GB
+| 1-hourly bin  |                      24 |            480.00  B |      2.29 MB |     68.66 MB |      2.45 GB |        2.94 GB |               468.75 kB |               501.25 MB
+|   daily data  |                       1 |             20.00  B |     97.66 kB |      2.86 MB |    104.43 MB |      125.31 MB |                19.53 kB |                20.89 MB
 
 ( * As I later recommend this data is stored in a flat-file format,
 note that this data will be uncompressed on load and require the full
@@ -280,9 +289,9 @@ performance and a storage cost benefit in using 1/5th the storage on
 disk.
 
 Thereefore, outside of relatively fixed cost of sym and init.q
-storage, this is expected to use approximately (1.72TB + 117.48GB +
-83.54 MB) ~= 1.83 TB, which is easy to store on a single
-high-performance storage storage device.
+storage, this is expected to use approximately (1.72 TB + 176.22 GB +
+125.31 MB) ~= 1.89 TB, which is easy to store on a single
+high-performance storage device.
 
 ### Solution Setup
 
