@@ -86,13 +86,14 @@ purposes).  I have assumed 1 million rows per symbol per day for raw
 data.  Finally, I assume data is arriving at an even rate across the
 day, including at weekends.
 
-|   table type | size per sym per day  | size per day | size 30 days | size 3 years | size per day compressed | size 3 years compressed |
-| ------------ | --------------------- | ------------ | ------------ | ------------ | ------------------------| ----------------------- |
-|     raw data |              19.07 MB |     93.13 GB |      2.73 TB |     99.59 TB |               18.63 GB  |               19.92 TB  |
-| 1-second bin |               1.65 MB |      8.05 GB |    241.40 GB |      8.60 TB |                1.61 GB  |                1.72 TB  |
-| 1-minute bin |              22.50 KB |    109.86 MB |      3.22 GB |    117.48 GB |               21.97 MB  |               23.50 GB  |
-| 5-minute bin |               4.50 KB |     21.97 MB |    659.18 MB |     23.50 GB |                4.39 MB  |                4.70 GB  |
-|   daily data |              20.00  B |     78.13 KB |      2.29 MB |     83.54 MB |               15.63 KB* |               16.71 MB* |
+|   table type | size per sym per day  | size per day | size 30 days | size 3 years | size per day compressed  | size 3 years compressed |
+| ------------ | --------------------- | ------------ | ------------ | ------------ | ------------------------ | ----------------------- |
+|     raw data |              19.07 MB |     93.13 GB |      2.73 TB |     99.59 TB |               18.63 GB   |               19.92 TB  |
+| 1-second bin |               1.65 MB |      8.05 GB |    241.40 GB |      8.60 TB |                1.61 GB   |                1.72 TB  |
+| 1-minute bin |              22.50 KB |    109.86 MB |      3.22 GB |    117.48 GB |               21.97 MB   |               23.50 GB  |
+| 5-minute bin |               4.50 KB |     21.97 MB |    659.18 MB |     23.50 GB |                4.39 MB   |                4.70 GB  |
+| 1-hourly bin |             480.00  B |      2.29 MB |     68.66 MB |      2.45 GB |              468.75 KB   |              501.25 MB  |
+|   daily data |              20.00  B |     78.13 KB |      2.29 MB |     83.54 MB |               15.63 KB*  |               16.71 MB* |
 
 ( * As I later recommend this data is stored in a flat-file format,
 note that this data will be uncompressed on load and require the full
@@ -155,6 +156,48 @@ sample increment as follows:
   table.
 
 - If the sample increment is greater than 1 day, use daily stats
+
+It is not obvious that hourly binned data is worth the cost and
+complexity versus 1-minute data.  Storing the data as a flat file
+would mean searching the entire space for a given sym on every call,
+which is likely to be hit diminishing returns, and cannot be done in
+parallel outside of kdb's internal multi-threading.  It is likely to
+be faster to either use 1-minute binned data (which has fewer points
+per sample to explore) at smaller sample intervals, or to use daily
+data for a cost in accuracy at wider increments.
+
+It would be possilbe to store hourly data by month.  This would need
+to be stored in a separate HDB, and require a more complex gateway/HDB
+architecture, and the resulting IPC and complexity is likely to slow
+down queries.
+
+It could instead be done implicitly by joining as below in the inner
+snap loop.  This maps dates to the first partition of the month, and
+ignores all other date partitions which can be left empty..
+
+```
+   $[tab=`tradeDaily;
+        aj[joincols;rack;tab];
+	
+     tab=`trade1hour;
+        raze {[jc;r;t;m] aj[jc;select from r where (`month$date)=m;
+                               select from t where date=`date$d]
+                }[joincols;rack;tab;] peach distinct `month$rack`date;
+	     
+     raze {[jc;r;t;d] aj[jc;select from r where date=d;
+                            select from t where date=d]
+             }[joincols;rack;tab;] peach distinct rack`date
+     ]
+     
+```
+
+This might strike a better balance between parallelism and efficiency
+of individual joins, but adds significant complexity in both the API
+provided and the operational complexity of ensuring we store data in
+the correct partition and re-sort as needed in the case of a rolling
+3-year HDB window.  I would revisit this based on business demands if
+the performance required cannot be obtained using 1-minute binned
+data.
 
 Given the increased cost to store 1-second binned data, it may be
 decided that there is no need for this.  To store all data for three
@@ -235,6 +278,11 @@ in cache and we can use compression to load less data from disk in
 preference to CPU, compression offers a net benefit to cold query
 performance and a storage cost benefit in using 1/5th the storage on
 disk.
+
+Thereefore, outside of relatively fixed cost of sym and init.q
+storage, this is expected to use approximately (1.72TB + 117.48GB +
+83.54 MB) ~= 1.83 TB, which is easy to store on a single
+high-performance storage storage device.
 
 ### Solution Setup
 
