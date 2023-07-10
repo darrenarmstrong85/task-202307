@@ -282,7 +282,9 @@ considered for tweaking.
 Timeouts and "bad queries" are not currently considered.  These should
 be rare enough given the API that it is very hard to write a query
 that cannot be serviced quickly, due to the manner in which we
-automatically scale the granularity of the data.
+automatically scale the granularity of the data.  A heartbeat
+mechanism in the control process may help us to ensure that services
+are healthy and/or alert when they are not.
 
 One additional benefit of storing this data in summary format is that
 it is largely agnostic to data volumes. Within the areas I have worked
