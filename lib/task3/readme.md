@@ -155,8 +155,8 @@ samples ( <100MB **total** ), I think it would be worth storing daily
 data as a flat file within the database, with the `g# attribute set
 either on-disk or upon loading.
 
-So for the purpose of this exercise, I have decided that to use the
-sample increment as follows:
+So for the purpose of this exercise, I have decided to use the
+sampling increment as follows:
 
 - If the sample increments are smaller than 1 minute, use 1-second
   binned data.
