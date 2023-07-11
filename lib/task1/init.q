@@ -42,11 +42,11 @@
  both accessible at https://code.kx.com/
 \
 
-\d .task1
+.task1.init:{
+   `trade set ("DSPJF";enlist csv) 0: .utils.getTradesFileLocation[];
+   }
 
-init:{
-  `trades set ("DSPJF";enlist csv) 0: .utils.getTradesFileLocation[];
-  }
-
-
-\d .
+.task1.getVwap:{[s;st;et]
+   0!select vwap:size wavg price by sym from trade
+      where sym in s, date within (`date$(st;et)), time within (st;et)
+   }
