@@ -3,7 +3,58 @@
 Individual task directories can be found in the lib directory at the
 root of this repository.
 
-# Running instructions
+# Task1 Outputs
+
+1. An input file with data you have created in csv format
+
+I've added a utilities library that will generate random data by calling `.utils.seedCSV[]`.  A copy of the data generated can be found at lib/utils/trades.csv.
+
+2. A function which, given a time range and a list of symbols as inputs, returns the VWAP (TWAP) for each of these symbols as a table
+
+The is the function `.task1.getVwap` which can be found in lib/task1/init.q
+
+3. A command to start a q process which will load this function
+
+Based on the below setup instructions, this can be done using:
+
+```
+darren@DESKTOP-LMH5KQC:~/git/task-202307$ type qq
+qq is a function
+qq ()
+{
+    loc=$(readlink -f $(which q));
+    local QHOME=${loc%/l64/q};
+    QHOME=$QHOME rlwrap -c -s 99999 $loc $@ -c $LINES $COLUMNS
+}
+darren@DESKTOP-LMH5KQC:~/git/task-202307$ qq loadlibs.q
+KDB+ 4.0 2023.01.20 Copyright (C) 1993-2023 Kx Systems
+l64/ 8(24)core 3813MB darren desktop-lmh5kqc 127.0.1.1 EXPIRE 2024.07.07 darren.armstrong85@gmail.com KOD #5015115
+
+q).task1.getVwap
+{[s;st;et]
+   0!select vwap:size wavg price by sym from trade
+      where sym in s, date within (`date$(st;et)), time within (st;et)
+   }
+```
+
+4. Example of how to call the function
+
+Using the initialization above:
+
+```
+q).task1.init[]
+q)meta .task1.getVwap[`EURUSD;.z.p;.z.p]
+c   | t f a
+----| -----
+sym | s
+vwap| f
+```
+
+5. Test(s) to ensure validity of code
+
+These can be found at lib/tests/test_vwap.q
+
+# Setup instructions
 
 I have been running all samples via a combination of Docker / Circle
 CI automation and my local setup, which I will describe below.
