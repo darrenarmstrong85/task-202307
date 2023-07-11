@@ -9,7 +9,6 @@ RUN \
 	mv qutil-master $QPATH/lib/qutil && \
 	ln -s $QPATH/lib/qutil/lib $QPATH/qutil && \
 	rm qutil.zip && \
-	rm /q/q.q && \
 	ln -s $QPATH/lib/qutil/q_q.sample /q/q.q && \
 	ln -s $QPATH/qutil/bootstrap.q $QPATH/bootstrap.q
 
