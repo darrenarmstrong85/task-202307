@@ -3,7 +3,7 @@
 Individual task directories can be found in the lib directory at the
 root of this repository.
 
-# Task1 Outputs
+# Task 1 Outputs
 
 1. An input file with data you have created in csv format
 
@@ -53,6 +53,49 @@ vwap| f
 5. Test(s) to ensure validity of code
 
 These can be found at lib/tests/test_vwap.q
+
+# Task 2
+
+Please find test code in lib/tests/test_cond_vwap.q, and implementation at lib/task2/init.q
+
+- The function should be tested using your testing framework of your choice and an example should be given on how to run the tests.
+
+As per instructions on Task 1 and using setup instuctions below, we can see the description of the output in the case where `--desc` is supplied and a successful test run without this, confirming that the test has been run successfully.
+
+```
+darren@DESKTOP-LMH5KQC:~/git/task-202307$ qspec lib/tests --desc
+KDB+ 4.0 2023.01.20 Copyright (C) 1993-2023 Kx Systems
+l64/ 8(24)core 3813MB darren desktop-lmh5kqc 127.0.1.1 EXPIRE 2024.07.07 darren.armstrong85@gmail.com KOD #5015115
+
+conditional vwap::
+- should take a client order and market trades tables as inputs and
+      return a table which contains one record per client id , the
+      sym,start and end columns, and an extra column, the conditional
+      vwap described above.
+sampling generation function calculateSamplePoints::
+- should generate the correct sampling points between t1 and t2
+sampling function getStockSamples::
+- should generate an output table of correct schema with same number of outputs as samples requested
+- should call util function to generate correctly spaced samples
+- should include sym in results returned
+- should call snap function with the correct granularity
+vwap function::
+- should return a table with expected schema
+- should Find vwaps with expected values
+- should Find vwaps in expected range
+darren@DESKTOP-LMH5KQC:~/git/task-202307$ qspec lib/tests
+KDB+ 4.0 2023.01.20 Copyright (C) 1993-2023 Kx Systems
+l64/ 8(24)core 3813MB darren desktop-lmh5kqc 127.0.1.1 EXPIRE 2024.07.07 darren.armstrong85@gmail.com KOD #5015115
+
+.........
+
+For 4 specifications, 9 expectations were run.
+9 passed, 0 failed.  0 errors.
+```
+
+- A sample/example run of the function with some input/output should be documented (it can be the tests above).
+
+See above
 
 # Setup instructions
 
