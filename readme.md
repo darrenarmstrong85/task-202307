@@ -7,7 +7,7 @@ root of this repository.
 
 1. An input file with data you have created in csv format
 
-I've added a utilities library that will generate random data by calling `.utils.seedCSV[]`.  A copy of the data generated can be found at lib/utils/trades.csv.
+I've added a utilities library that will generate random data by calling `.utils.seedTradesCsv[]`.  A copy of the data generated can be found at lib/utils/trades.csv.
 
 2. A function which, given a time range and a list of symbols as inputs, returns the VWAP (TWAP) for each of these symbols as a table
 
