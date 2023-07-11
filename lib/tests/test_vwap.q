@@ -7,7 +7,7 @@
       };
 
    should["return a table with expected schema"] {
-      `trade mock ([]date:1#today; sym:`EURUSD; time:now; size:1; price:10);
+      `trade mock ([]date:1#today; sym:`EURUSD; time:now; volume:1; price:10);
 
       v:.task1.getVwap[`;.z.p;.z.p];
       type[v] musteq 98h;
@@ -19,8 +19,8 @@
          date:today;
          sym:`EURUSD`EURUSD`USDCHF`USDCHF`GBPUSD`GBPUSD`EURCHF`EURCHF`USDJPY`USDJPY;
          time:now;
-         size: (  1;  9;  2;  2;  0; 100; 0N;  10; 0N; 0N);
-         price:( 10; 20; 10; 20; 50;   1;  5; 100; 20; 20));
+         volume: (  1;  9;  2;  2;  0; 100; 0N;  10; 0N; 0N);
+         price:  ( 10; 20; 10; 20; 50;   1;  5; 100; 20; 20));
 
       `expected mock flip `sym`vwap! flip (
          (`EURUSD; 19f);
@@ -38,7 +38,7 @@
          date:today;
          sym:`EURUSD;
          time:asc ((now-til 100), (now+1+til 100));
-         size: ((100#2), 100#1);
+         volume: ((100#2), 100#1);
          price:((100#-1),100#1)
 	 );
 

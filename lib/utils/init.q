@@ -10,7 +10,7 @@ getTradesFileLocation:{
   }
 
 genCSV:{
-  trades:raze {[s;d] ungroup ([sym:s] date:d; time:d+(5;0N)#5000?1D-1; size:(5;0N)#5000?100; rwalk:(5;0N)# (5000?1.0)-0.5)
+  trades:raze {[s;d] ungroup ([sym:s] date:d; time:d+(5;0N)#5000?1D-1; volume:(5;0N)#5000?100; rwalk:(5;0N)# (5000?1.0)-0.5)
      }[`EURUSD`USDCHF`GBPUSD`EURCHF`USDJPY;] each .utils.datesFromRange[2023.07.01;2023.07.05];
 
   trades:`date`sym`time xasc trades;

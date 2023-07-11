@@ -47,6 +47,6 @@
    }
 
 .task1.getVwap:{[s;st;et]
-   0!select vwap:size wavg price by sym from trade
+   0!select vwap:volume wavg price by sym from trade
       where sym in s, date within (`date$(st;et)), time within (st;et)
    }
