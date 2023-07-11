@@ -1,3 +1,8 @@
+# Code location
+
+Individual task directories can be found in the lib directory at the
+root of this repository.
+
 # Running instructions
 
 I have been running all samples via a combination of Docker / Circle
