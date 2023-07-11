@@ -57,5 +57,20 @@ Acceptance Criteria:
 \
 
 .task2.init:{[]
-   `markettrades set ("DSPJF";enlist csv) 0: .utils.getTradesFileLocation[];
+   `clientorders set ("DJJSPSFPP"; enlist csv) 0: .utils.getClientOrdersFileLocation[];
+   `markettrades set update `g#sym from `sym`time xasc ("DSPJF";enlist csv) 0: .utils.getTradesFileLocation[];
+   };
+
+.task2.condVwap:{[clnt;mrkt]
+   w:clnt`start`end;
+   c:`sym`time;
+   t:clnt;
+   q:(mrkt;(::;`volume);(::;`price));
+
+   t:wj[w;c;t;q];
+
+   t:update vwap:{[l;v;p] ind:where p<=l; v[ind] wavg p[ind] }'[limit;volume;price] from t where side=`B;
+   t:update vwap:{[l;v;p] ind:where p>=l; v[ind] wavg p[ind] }'[limit;volume;price] from t where side=`S;
+   
+   :0!select by date,id from (cols[clnt] union `vwap)#t
    };
